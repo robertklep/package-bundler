@@ -11,9 +11,9 @@ $ npm i -g @vercel/ncc
 
 ## Installation
 
-Download the `package-bundler` script and copy it to somewhere in your `$PATH`. Make sure it's executable:
+Install the bundler script using NPM:
 ```
-$ chmod 755 /path/to/package-bundler
+$ npm install -g https://github.com/robertklep/package-bundler
 ```
 
 ## How to use
@@ -28,6 +28,11 @@ $ package-bundler lodash
 $ package-bundler lodash flattenDeep merge
 ```
 
+#### Bundle a specific package version
+```
+$ package-bundler lodash@4.0.0
+```
+
 ## What it does
 
 The script will create a temporary directory in which it will install the Node.js package to be bundled. Then it will write a small wrapper file that exports the package (or just the specific imports).
@@ -37,4 +42,3 @@ It will then run `ncc` against the wrapper file to bundle everything into a sing
 ## Limitations
 
 * Not all packages can be bundled, especially ones that use dynamic `require` calls or packages like `require-all`.
-* Does not support package versioning (`package@1.0.0`) yet, only the latest version of the package is bundled.

@@ -1,0 +1,79 @@
+#!/usr/bin/env node
+
+const process       = require('node:process');
+const fs            = require('node:fs/promises');
+const os            = require('node:os');
+const { promisify } = require('node:util');
+const exec          = promisify(require('node:child_process').exec);
+const path          = require('node:path');
+const name          = path.basename(__filename);
+
+function log(...args) {
+  console.log(`[${ name }]`, ...args);
+}
+
+// validate commandline
+const args = process.argv.slice(2).filter( arg => arg[0] !== '-');
+if (! args.length) {
+  log(`Use: ${ name } package[@version] [import [import ...]]`);
+  process.exit(1);
+}
+const [ pkg, ...imports ] = args;
+
+// check if requirements are installed
+try {
+  require('@vercel/ncc');
+} catch(e) {
+  log(`
+This script depends on @vercel/ncc to be installed globally:
+$ npm install @vercel/ncc
+`);
+  process.exit(1);
+}
+
+void async function() {
+  // create temporary directory
+  const tmpdir = await fs.mkdtemp(path.join(os.tmpdir(), 'package-bundler-'));
+
+  // store cwd and chdir to temporary directory
+  const cwd = process.cwd();
+  process.chdir(tmpdir);
+
+  // install package to bundle
+  log(`installing ${ pkg } in temporary directory`);
+  var { stdout, stderr } = await exec(`npm install ${ pkg } --omit=dev --audit=false --fund=false`);
+
+  // remove possible version from package
+  const unversioned = pkg.replace(/(?<!^)@.*/, '');
+
+  // create wrapper file
+  const importStatements = (imports.length ? imports : [ '' ]).map(imp => (
+    `module.exports${ imp.length ? '.' + imp : '' } = require('${ unversioned }')${ imp.length ? '.' + imp : '' };`
+  ));
+  await fs.writeFile('index.js', importStatements.join('\n'));
+
+  // create bundle directory
+  await fs.mkdir(unversioned, { recursive : true });
+
+  // create bundle
+  log(`bundling...`);
+  var { stdout, stderr } = await exec(`ncc build --minify --quiet index.js --out '${ unversioned }'`);
+
+  // move back to old working directory
+  process.chdir(cwd);
+
+  // move the bundle package to the cwd
+  await fs.cp(path.join(tmpdir, unversioned), unversioned, { recursive : true, errorOnExist : true });
+
+  // done!
+  log(`done bundling package, see ./${ unversioned }/`);
+
+  // set up cleaner
+  process.once('beforeExit', async () => {
+    //await fs.rm(tmpdir, { recursive : true });
+  });
+}().catch(e => {
+  log('caught an error', e.message);
+  log(e);
+  process.exit(1);
+});
