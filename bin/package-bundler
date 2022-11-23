@@ -6,6 +6,7 @@ const os            = require('node:os');
 const { promisify } = require('node:util');
 const exec          = promisify(require('node:child_process').exec);
 const path          = require('node:path');
+const ncc           = require('@vercel/ncc');
 const name          = path.basename(__filename);
 
 function log(...args) {
@@ -19,17 +20,6 @@ if (! args.length) {
   process.exit(1);
 }
 const [ pkg, ...imports ] = args;
-
-// check if requirements are installed
-try {
-  require('@vercel/ncc');
-} catch(e) {
-  log(`
-This script depends on @vercel/ncc to be installed globally:
-$ npm install @vercel/ncc
-`);
-  process.exit(1);
-}
 
 void async function() {
   // create temporary directory
@@ -57,7 +47,25 @@ void async function() {
 
   // create bundle
   log(`bundling...`);
-  var { stdout, stderr } = await exec(`ncc build --minify --quiet index.js --out '${ unversioned }'`);
+  const { code, map, assets } = await ncc('./index.js', {
+    minify: true,
+    quiet:  true,
+  });
+  if (! code) {
+    log(`unable to bundle?`)
+    process.exit(1);
+  }
+  log(`bundling successful, writing bundle directory`);
+  await fs.writeFile(path.join(unversioned, 'index.js'), code);
+
+  // also write additional assets
+  const numAssets = Object.keys(assets).length;
+  if (numAssets) {
+    log(`writing ${ numAssets } additional asset${ numAssets === 1 ? '' : 's' }`);
+    for (const [ filename, { source } ] of Object.entries(assets)) {
+      await fs.writeFile(path.join(unversioned, filename), source);
+    }
+  }
 
   // move back to old working directory
   process.chdir(cwd);

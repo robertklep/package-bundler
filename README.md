@@ -4,10 +4,7 @@ Bundle a Node.js module into a single file.
 
 ## Prerequisites
 
-Depends on [`@vercel/ncc`](https://github.com/vercel/ncc), which should be installed globally:
-```
-$ npm i -g @vercel/ncc
-```
+Depends on having a working, and recent, Node.js installation (including `npm`).
 
 ## Installation
 

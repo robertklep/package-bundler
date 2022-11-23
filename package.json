@@ -1,6 +1,6 @@
 {
   "name": "package-bundler",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Bundle Node.js packages",
   "bin": {
     "package-bundler": "./bin/package-bundler"
@@ -14,5 +14,8 @@
   "bugs": {
     "url": "https://github.com/robertklep/package-bundler/issues"
   },
-  "homepage": "https://github.com/robertklep/package-bundler#readme"
+  "homepage": "https://github.com/robertklep/package-bundler#readme",
+  "dependencies": {
+    "@vercel/ncc": "^0.34.0"
+  }
 }
