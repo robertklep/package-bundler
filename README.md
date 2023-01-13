@@ -8,10 +8,12 @@ Depends on having a working, and recent, Node.js installation (including `npm`).
 
 ## Installation
 
-Install the bundler script using NPM:
+Install the bundler script using NPM (requires Git to be installed as a CLI tool):
 ```
 $ npm install -g https://github.com/robertklep/package-bundler
 ```
+
+Alternatively, you can [download the code from Github as a ZIP file](https://github.com/robertklep/package-bundler/archive/refs/heads/main.zip) and run `npm install -g` from the `package-bundler-main` directory after unzipping the file.
 
 ## How to use
 
