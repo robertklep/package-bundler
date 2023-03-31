@@ -16,6 +16,6 @@
   },
   "homepage": "https://github.com/robertklep/package-bundler#readme",
   "dependencies": {
-    "@vercel/ncc": "^0.36.0"
+    "@vercel/ncc": "^0.36.1"
   }
 }
